@@ -33,7 +33,7 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
 <!-- IMAGE: images/motion_tracking/open_movie_clip.png -->
 
-5. Match the scene frame rate to your footage in **Output Properties → Format → Frame Rate**.
+5. Match the scene frame rate to your footage in **Output Properties -> Format -> Frame Rate**.
 
 ![Setting the output frame rate](images/motion_tracking/setting_output_frame_rate.png)
 
@@ -41,11 +41,11 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
 ![Set Scene Frames in the Movie Clip Editor](images/motion_tracking/set_scene_frames.png)
 
-   Check the result under **Output Properties → Frame Range**.
+   Check the result under **Output Properties -> Frame Range**.
 
-7. Prefetch the footage. With your mouse over the Movie Clip Editor, press `P` (or use **Clip → Prefetch Frames**). This loads the frames into memory, so playback runs at full speed and tracking is faster.
+7. Prefetch the footage. With your mouse over the Movie Clip Editor, press `P` (or use **Clip -> Prefetch Frames**). This loads the frames into memory, so playback runs at full speed and tracking is faster.
 
-> 💡 **Tip:** If Blender can't hold the whole clip in memory, raise the limit in **Edit → Preferences → System → Memory Cache Limit**. Long or high-resolution clips need more memory.
+> 💡 **Tip:** If Blender can't hold the whole clip in memory, raise the limit in **Edit -> Preferences -> System -> Memory Cache Limit**. Long or high-resolution clips need more memory.
 
 ### Keyboard shortcuts
 
@@ -160,7 +160,7 @@ Each marker has two boxes:
 - **Pattern area** (the inner box): the patch of image Blender looks for.
 - **Search area** (the outer box): how far Blender is allowed to look for that patch in the next frame.
 
-The search area is hidden by default. Press `Alt + S` to toggle it on and off. It's also under **Clip Display → Marker Display → Search** in the editor header.
+The search area is hidden by default. Press `Alt + S` to toggle it on and off. It's also under **Clip Display -> Marker Display -> Search** in the editor header.
 
 ![The pattern area and search area of a selected marker](images/motion_tracking/search_area.png)
 
@@ -454,7 +454,7 @@ By default your 3D mesh is laid over the top of the whole frame. If something in
 
 **Use it in the Compositor**
 
-1. Add a **Mask** node (**Add → Input → Mask**) and select your mask.
+1. Add a **Mask** node (**Add -> Input -> Mask**) and select your mask.
 2. Use its output to cut the mesh out where the foreground object is. For example, plug it into the **Factor** of a **Mix** node, or multiply it into the alpha of the render before the **Alpha Over** node.
 3. Scrub through the footage and check that the mask edge lines up with the object on every frame.
 
