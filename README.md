@@ -428,8 +428,38 @@ An incorrectly reconstructed depth can make your mesh appear to slide as the cam
 5. Verify alignment throughout the footage.
 6. Set up the **Compositor**.
 7. Combine the rendered 3D scene with your original footage.
-8. Check the final result.
-9. Render your animation.
+8. Mask any real objects that pass in front of the mesh (see [Masking](#masking-putting-real-objects-in-front-of-your-mesh)).
+9. Check the final result.
+10. Render your animation.
 
 ![Compositor node setup combining the render with the original footage](images/motion_tracking/compositor_setup.png)
+
+### Masking: putting real objects in front of your mesh
+
+By default your 3D mesh is laid over the top of the whole frame. If something in the real footage should pass **in front** of the mesh (a person, a post or a table edge), the mesh will wrongly cover it. A **mask** cuts that area out so the original footage shows through.
+
+**Draw the mask**
+
+1. In the **Movie Clip Editor**, change the mode in the header from **Tracking** to **Mask**.
+2. Click **New** to create a mask.
+3. `Ctrl + Left Click` around the outline of the foreground object to add points. Click the first point to close the shape.
+4. Drag a point's handles to curve the edge, and drag outwards on a point to **feather** (soften) the edge.
+
+![Drawing a mask around a foreground object in the Movie Clip Editor](images/motion_tracking/masking.png)
+
+**Make the mask follow the footage**
+
+- **Parent it to tracks:** select the mask points, then `Shift`-select a tracking marker on the same object. Press `Ctrl + P` and the mask moves with the track. This is the quickest option for rigid objects.
+- **Animate it by hand:** for objects that change shape, move to a new frame, adjust the points and press `I` to insert a shape keyframe. Use as few keyframes as possible and check the in-between frames.
+
+**Use it in the Compositor**
+
+1. Add a **Mask** node (**Add → Input → Mask**) and select your mask.
+2. Use its output to cut the mesh out where the foreground object is. For example, plug it into the **Factor** of a **Mix** node, or multiply it into the alpha of the render before the **Alpha Over** node.
+3. Scrub through the footage and check that the mask edge lines up with the object on every frame.
+
+> 💡 **Tip:** Make the mask slightly smaller than the object and add a little feather. A hard edge that sits a few pixels outside the object is far more noticeable than a soft one inside it.
+>
+> 💡 **Tip:** Masks can also help tracking. A mask can hide a moving object inside a marker's pattern area, so Blender only follows the static background. Use this when a good feature has something moving across it.
+
 ![A frame from the final composited render](images/motion_tracking/final_render.png)
