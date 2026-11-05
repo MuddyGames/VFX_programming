@@ -33,12 +33,15 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
 <!-- IMAGE: images/motion_tracking/open_movie_clip.png -->
 
-5. Match the scene frame rate to your footage.
-6. Set the correct frame range.
+5. Match the scene frame rate to your footage in **Output Properties → Format → Frame Rate**.
 
-Both settings are in **Output Properties → Format** and **Frame Range**:
+![Setting the output frame rate](images/motion_tracking/setting_output_frame_rate.png)
 
-![Setting the output frame rate and frame range](images/motion_tracking/setting_output_frame_rate.png)
+6. Set the correct frame range. In the Movie Clip Editor sidebar (`N`), open the **Footage Settings** panel and click **Set Scene Frames**. This sets the scene's start and end frames to match the clip's length.
+
+![Set Scene Frames in the Movie Clip Editor](images/motion_tracking/set_scene_frames.png)
+
+   Check the result under **Output Properties → Frame Range**.
 
 ### Keyboard shortcuts
 
