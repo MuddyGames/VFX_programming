@@ -237,7 +237,7 @@ Once it's visible you can drag its corners to resize it. This matters because:
 6. Wait for Blender to calculate the camera movement.
 7. Review the **Average Solve Error**.
 
-<!-- IMAGE: images/motion_tracking/solve_camera_motion.png -->
+![The Solve panel, with keyframes, focal length refinement and the Average Solve Error](images/motion_tracking/solve_camera_motion.png)
 
 > 💡 **Tip:** A lower solve error is generally better, but it doesn't guarantee that your mesh will stay perfectly attached to the real-world surface.
 >
@@ -258,7 +258,7 @@ Once it's visible you can drag its corners to resize it. This matters because:
 7. Click **Set Scale**.
 8. Enter the actual distance.
 
-<!-- IMAGE: images/motion_tracking/set_floor_origin_scale.png -->
+![Setting the floor, origin and scene scale in the Solve panel](images/motion_tracking/set_floor_origin_scale.png)
 
 > ⚠️ **Important:** Your floor markers must be on the same physical plane. Don't mix points from the floor and walls. This step is particularly important when placing a mesh on a real-world surface; otherwise it will hop or jitter.
 
@@ -431,5 +431,5 @@ An incorrectly reconstructed depth can make your mesh appear to slide as the cam
 8. Check the final result.
 9. Render your animation.
 
-<!-- IMAGE: images/motion_tracking/compositor_setup.png -->
-<!-- IMAGE: images/motion_tracking/final_render.png -->
+![Compositor node setup combining the render with the original footage](images/motion_tracking/compositor_setup.png)
+![A frame from the final composited render](images/motion_tracking/final_render.png)
