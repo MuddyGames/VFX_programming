@@ -43,11 +43,16 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
    Check the result under **Output Properties → Frame Range**.
 
+7. Prefetch the footage. With your mouse over the Movie Clip Editor, press `P` (or use **Clip → Prefetch Frames**). This loads the frames into memory, so playback runs at full speed and tracking is faster.
+
+> 💡 **Tip:** If Blender can't hold the whole clip in memory, raise the limit in **Edit → Preferences → System → Memory Cache Limit**. Long or high-resolution clips need more memory.
+
 ### Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
 | `Alt + O` | Open clip (where supported) |
+| `P` | Prefetch frames into memory |
 | `Space` | Play / pause |
 | `Left` / `Right Arrow` | Previous / next frame |
 | `Shift + Left Arrow` | First frame |
