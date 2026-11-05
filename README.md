@@ -66,6 +66,25 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
 **Goal:** Give Blender points to follow throughout the footage.
 
+### Choose a motion model first
+
+Before you add markers, open the **Tracking Settings** panel in the Movie Clip Editor's toolbar (`T`) and pick a **Motion Model**. New markers use this setting, and it tells Blender how a feature is allowed to change from frame to frame.
+
+![Selecting the motion model for tracking](images/motion_tracking/motion_model.png)
+
+| Motion model | Use when |
+|---|---|
+| **Loc** | The feature only moves across the frame. This is the simplest and most stable option. |
+| **LocScale** | The camera moves towards or away from the feature, so it grows or shrinks. |
+| **LocRot** | The feature rotates in the frame, for example when the camera rolls. |
+| **LocRotScale** | The feature moves, rotates and changes size. |
+| **Affine** | The feature also skews as the viewing angle changes. |
+| **Perspective** | The feature sits on a flat surface seen at a changing angle, such as the floor. This is the most flexible option and the most likely to drift. |
+
+> 💡 **Tip:** Start with **Loc** or **LocScale**. Only move to a more complex model if markers slip because the feature changes shape. More freedom means more ways for a track to wander.
+
+### Place the markers
+
 1. Find clearly visible details in your footage.
 2. Place your mouse over a feature.
 3. Press `Ctrl + Left Click` to add a tracking marker.
@@ -109,12 +128,78 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 
 <!-- IMAGE: images/motion_tracking/tracking_markers.png -->
 
+### Tracking forwards and backwards
+
+A marker only gets tracked from the frame where you placed it, in the direction you choose. A marker placed halfway through the clip and tracked only forwards has **no data for the first half**.
+
+- **Track forwards** (`Ctrl + T`) follows the feature from the current frame towards the end of the clip.
+- **Track backwards** (`Ctrl + Shift + T`) follows it from the current frame towards the start.
+- For a feature that is visible across the whole clip, place the marker on a frame in the **middle** of the clip where the feature is sharp. Track forwards, return to that frame, then track backwards.
+- For a feature that only appears partway through (it comes into view or is uncovered), place the marker on the first clear frame and track forwards. For one that leaves the frame, place it on the last clear frame and track backwards.
+- If a track fails, step **one frame at a time** with `Alt + Right Arrow` / `Alt + Left Arrow`. Watch the marker, nudge it back onto the feature with `G` when it slips, then carry on.
+
+> 💡 **Tip:** Tracking stops automatically when Blender loses the feature, and the marker is disabled from that frame on. That's the frame to inspect.
+
+### Locking a tracker
+
+Once a track is finished and you're happy with it, **lock it** so you can't accidentally move or retrack it while you work on other markers.
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl + L` | Lock selected tracks |
+| `Ctrl + Alt + L` | Unlock selected tracks |
+
+You can also toggle the padlock icon in the **Track** panel of the sidebar (`N`). Locked tracks still take part in the camera solve. They just can't be edited.
+
+> ⚠️ **Note:** Don't confuse this with **Lock to Selection** (`L`) in the editor header. That option keeps the view centred on the selected marker during playback, which is very handy for inspecting a track, but it doesn't protect the track.
+
+### Showing the search area (`Alt + S`)
+
+Each marker has two boxes:
+
+- **Pattern area** (the inner box): the patch of image Blender looks for.
+- **Search area** (the outer box): how far Blender is allowed to look for that patch in the next frame.
+
+The search area is hidden by default. Press `Alt + S` to toggle it on and off. It's also under **Clip Display → Marker Display → Search** in the editor header.
+
+![The pattern area and search area of a selected marker](images/motion_tracking/search_area.png)
+
+In this screenshot:
+
+- The **small inner box** is the pattern area, placed on a distinctive detail.
+- The **large outer box** is the search area. Drag its corner handle to resize it, or drag its top-left square to move it.
+- The **yellow box** on the right is another marker that isn't selected, so only its pattern area is shown.
+
+Once it's visible you can drag its corners to resize it. This matters because:
+
+- If the feature moves **further between frames than the search area allows** (fast camera moves, whip pans, low frame rates), the track will jump or fail. Make the search area bigger.
+- If the search area is **too big**, Blender may lock onto a similar-looking feature nearby, and tracking slows down. Keep it only as big as the motion needs.
+
+### More tips for good tracks
+
+- **Pattern size:** Make the pattern area big enough to hold a distinctive, high-contrast detail, such as a corner rather than a flat wall. Too small and it's easy to confuse with something else. Too big and it may include parts of the image that move differently.
+- **Prefer corners to edges:** A marker on a straight edge can slide along that edge without Blender noticing. Corners and "X" or "L" shaped details pin the marker in both directions.
+- **Avoid reflections, shadows and anything that changes:** Reflections in glass, moving shadows, flickering lights and water all move independently of the camera.
+- **Watch the edges of the frame:** Features near the image edges are more affected by lens distortion and leave the frame first. Use them, but check them carefully.
+- **Use Lock to Selection while inspecting:** Press `L`, then play the clip. If the feature wobbles in the centre of the view, the track is drifting.
+- **Matching setting:** In **Tracking Settings**, **Keyframe** matching compares each frame to the frame where the marker was placed. This is more stable and resists drift. **Previous Frame** compares to the frame before, which handles features that slowly change appearance but can drift over long shots.
+- **Normalize:** Enable **Normalize** in Tracking Settings when the lighting changes during the shot, such as clouds passing or auto-exposure.
+- **Hide finished tracks:** Press `H` to hide selected tracks and `Alt + H` to show them all again. This keeps the view uncluttered while you work on new ones.
+
 ### Keyboard shortcuts
 
 | Shortcut | Action |
 |---|---|
-| `Ctrl + T` | Track forwards |
-| `Ctrl + Shift + T` | Track backwards |
+| `Ctrl + T` | Track forwards (to the end) |
+| `Ctrl + Shift + T` | Track backwards (to the start) |
+| `Alt + Right Arrow` | Track forwards one frame |
+| `Alt + Left Arrow` | Track backwards one frame |
+| `Ctrl + L` | Lock selected tracks |
+| `Ctrl + Alt + L` | Unlock selected tracks |
+| `Alt + S` | Show / hide the search area |
+| `L` | Lock view to selection |
+| `G` | Move marker (to correct a slip) |
+| `H` / `Alt + H` | Hide selected tracks / show all |
 
 > ⚠️ **Important:** Don't assume a track is good just because Blender successfully tracked it. Make sure it stays attached to its original feature.
 
@@ -324,7 +409,7 @@ An incorrectly reconstructed depth can make your mesh appear to slide as the cam
 
 - Adjust tracking weights where appropriate.
 - Remove unreliable tracking markers.
-- Check the tracking motion model.
+- Check the tracking motion model (see [Step 2](#choose-a-motion-model-first)).
 - Investigate camera distortion.
 - Check your reconstructed floor and scene scale.
 
