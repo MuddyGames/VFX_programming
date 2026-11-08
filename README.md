@@ -2,7 +2,7 @@
 
 Blender camera tracking: placing 3D objects into real-world footage and fixing mesh sliding.
 
-**13 steps, from importing footage to final compositing.**
+**14 steps, from importing footage to final compositing and masking.**
 
 ## Contents
 
@@ -19,6 +19,7 @@ Blender camera tracking: placing 3D objects into real-world footage and fixing m
 11. [Check Focal Length and Tracking Accuracy](#step-11-check-focal-length-and-tracking-accuracy)
 12. [Check Tracking Stability Throughout the Footage](#step-12-check-tracking-stability-throughout-the-footage)
 13. [Final Compositing and Rendering](#step-13-final-compositing-and-rendering)
+14. [Mask Foreground Objects](#step-14-mask-foreground-objects)
 
 ---
 
@@ -428,38 +429,211 @@ An incorrectly reconstructed depth can make your mesh appear to slide as the cam
 5. Verify alignment throughout the footage.
 6. Set up the **Compositor**.
 7. Combine the rendered 3D scene with your original footage.
-8. Mask any real objects that pass in front of the mesh (see [Masking](#masking-putting-real-objects-in-front-of-your-mesh)).
+8. Mask any real objects that pass in front of the mesh (see [Step 14](#step-14-mask-foreground-objects)).
 9. Check the final result.
 10. Render your animation.
 
 ![Compositor node setup combining the render with the original footage](images/motion_tracking/compositor_setup.png)
 
-### Masking: putting real objects in front of your mesh
+![A frame from the final composited render](images/motion_tracking/final_render.png)
 
-By default your 3D mesh is laid over the top of the whole frame. If something in the real footage should pass **in front** of the mesh (a person, a post or a table edge), the mesh will wrongly cover it. A **mask** cuts that area out so the original footage shows through.
+---
 
-**Draw the mask**
+## Step 14: Mask Foreground Objects
 
-1. In the **Movie Clip Editor**, change the mode in the header from **Tracking** to **Mask**.
-2. Click **New** to create a mask.
-3. `Ctrl + Left Click` around the outline of the foreground object to add points. Click the first point to close the shape.
-4. Drag a point's handles to curve the edge, and drag outwards on a point to **feather** (soften) the edge.
+**Goal:** Let real objects in the footage pass **in front of** your 3D mesh.
+
+Blender lays the rendered mesh over the whole frame. If a person walks past, or a post or table edge sits between the camera and your mesh, the mesh wrongly covers it. A **mask** is a shape you draw over the footage that marks those areas, so the compositor can let the original footage show through there. Drawing and animating masks to follow something in the footage is called **rotoscoping**.
+
+This step has nine parts:
+
+1. [Plan the mask](#141-plan-the-mask)
+2. [Track the foreground object](#142-track-the-foreground-object)
+3. [Create the mask](#143-create-the-mask)
+4. [Draw the outline](#144-draw-the-outline)
+5. [Make the mask follow the object](#145-make-the-mask-follow-the-object)
+6. [Feather the edge](#146-feather-the-edge)
+7. [Set the mask layer options](#147-set-the-mask-layer-options)
+8. [Use the mask in the Compositor](#148-use-the-mask-in-the-compositor)
+9. [Check the mask](#149-check-the-mask)
+
+### 14.1 Plan the mask
+
+1. Scrub through the clip.
+2. Decide **what** needs masking. Only mask the parts of the object that actually overlap the mesh. For example, if only a person's legs cross in front of it, you don't need to mask the whole person.
+3. Note the **first and last frames** where the object overlaps the mesh. You only need an accurate mask for those frames.
+4. Decide whether the object is **rigid** or **changes shape**. A post, a box or a table edge is rigid and can follow tracking markers. A walking person or a waving hand changes shape and needs shape keys (animating by hand).
+5. Decide whether the object is **static** or **moving** in the real world. This decides how you track it in [14.2](#142-track-the-foreground-object).
+
+> 💡 **Tip:** If the object is complicated, use **several simple masks** (for example one per leg, one for the body) instead of one complicated outline. Simple shapes are much easier to animate.
+
+### 14.2 Track the foreground object
+
+Skip this part if you'll animate the mask by hand only. If the mask will follow tracking markers, the object needs its own markers.
+
+**Static objects** (a post, a wall corner, furniture):
+
+1. Use any markers you already placed on the object in [Step 2](#step-2-add-tracking-markers), or add new ones.
+2. Track them as normal. Markers on static objects are safe to use in the camera solve.
+
+**Moving objects** (a person, a car):
+
+1. In the **Solve** tab, find the **Objects** panel and click **+** to add a tracking object.
+2. Select the new object in the list.
+3. Add 2–4 markers on clear details of the moving object, near its edges.
+4. Track them forwards and backwards, as in [Step 3](#step-3-track-your-markers).
+5. Select the **Camera** object in the list again before you carry on with anything else.
+
+> ⚠️ **Important:** Markers on moving objects **must not** be part of the camera solve, or the solve will be pulled off. Putting them on a separate tracking object keeps them out of it.
+
+### 14.3 Create the mask
+
+1. In the **Movie Clip Editor** header, change the mode from **Tracking** to **Mask**.
+2. In the header, click **New** next to the mask selector to create a mask.
+3. Give the mask a clear name, such as `mask_post` or `mask_person_legs`.
+4. Go to the first frame where the object overlaps the mesh.
+
+> ⚠️ **Note:** In Mask mode some shortcuts behave differently from Tracking mode. For example, `Alt + S` scales the feather here, instead of showing the search area.
+
+### 14.4 Draw the outline
+
+1. `Ctrl + Left Click` to add a point. Click and **drag** to pull out handles and make the curve smooth at that point.
+2. Keep adding points around the object, going in one direction (clockwise or anticlockwise).
+3. Close the shape: with the last point selected, **double-click**, or press `Alt + C` (Toggle Cyclic).
+4. Move points to fit the outline by dragging them with `Left Click`, or by using `G`, `R` and `S` on selected points.
+5. Drag the handles to change the curve.
+6. Press `V` to change the handle type of selected points. Use **Vector** for sharp corners, and **Auto** or **Aligned** for smooth curves.
+7. Press `X` to delete any points you don't need.
 
 ![Drawing a mask around a foreground object in the Movie Clip Editor](images/motion_tracking/masking.png)
 
-**Make the mask follow the footage**
-
-- **Parent it to tracks:** select the mask points, then `Shift`-select a tracking marker on the same object. Press `Ctrl + P` and the mask moves with the track. This is the quickest option for rigid objects.
-- **Animate it by hand:** for objects that change shape, move to a new frame, adjust the points and press `I` to insert a shape keyframe. Use as few keyframes as possible and check the in-between frames.
-
-**Use it in the Compositor**
-
-1. Add a **Mask** node (**Add -> Input -> Mask**) and select your mask.
-2. Use its output to cut the mesh out where the foreground object is. For example, plug it into the **Factor** of a **Mix** node, or multiply it into the alpha of the render before the **Alpha Over** node.
-3. Scrub through the footage and check that the mask edge lines up with the object on every frame.
-
-> 💡 **Tip:** Make the mask slightly smaller than the object and add a little feather. A hard edge that sits a few pixels outside the object is far more noticeable than a soft one inside it.
+> 💡 **Tip:** Use as **few points as possible**. Every extra point is another point to fix on every frame. Put points on corners and where the outline changes direction, not along straight edges.
 >
-> 💡 **Tip:** Masks can also help tracking. A mask can hide a moving object inside a marker's pattern area, so Blender only follows the static background. Use this when a good feature has something moving across it.
+> 💡 **Tip:** Draw the mask slightly **inside** the object's edge. Feathering ([14.6](#146-feather-the-edge)) will soften it outwards.
 
-![A frame from the final composited render](images/motion_tracking/final_render.png)
+### 14.5 Make the mask follow the object
+
+#### Option A: Parent to tracking markers (rigid objects)
+
+1. Switch the Movie Clip Editor to **Tracking** mode and click the marker you want to follow, so it becomes the **active track**.
+2. Switch back to **Mask** mode. The active track is remembered.
+3. Select the mask points that should follow that marker.
+4. Press `Ctrl + P` (**Mask -> Make Parent**). The points now move with that marker.
+5. Repeat for other points and markers if needed. For example, points at the top of a post can follow a marker at the top, and points at the bottom can follow one at the bottom.
+6. Play the clip to check. If the mask doesn't move straight away, save and reopen the file.
+
+To remove parenting, select the points and press `Alt + P` (Clear Parent). The parent of the selected point is shown in the sidebar (`N`) under **Active Point**.
+
+> 💡 **Tip:** For a flat object such as a sign, screen or wall panel, create a **Plane Track** from four or more markers in Tracking mode (**Track** panel -> **Create Plane Track**). Then parent the mask points to the plane track with `Ctrl + P`. The mask will follow the surface's perspective as well as its position.
+
+#### Option B: Animate with shape keys (objects that change shape)
+
+Masks are animated with **shape keys**, which are keyframes for the shape of a whole mask layer.
+
+1. On the first frame, set the shape, then press `I` to insert a shape key.
+2. Jump forwards (try 5–10 frames at first), adjust the points to fit the object, and press `I` again.
+3. Repeat until you reach the last frame of the overlap.
+4. Go back and check the frames in between. Where the mask drifts, add a key halfway between two existing keys.
+5. Keep halving the gaps until the mask fits on every frame.
+6. To remove a shape key on the current frame, press `Alt + I`.
+7. To adjust the timing of keys, open the **Dope Sheet** and switch it to **Mask** mode.
+
+> 💡 **Tip:** Combine both options. Parent the mask to a track so it follows the overall motion, then add a few shape keys to fix changes in shape. This needs far fewer keys than animating by hand alone.
+>
+> 💡 **Tip:** Key the frames where motion **changes direction** first (a foot landing, an arm at the end of a swing). Blender interpolates smoothly between them.
+
+### 14.6 Feather the edge
+
+A perfectly hard mask edge looks cut out. Real edges are softened by focus and motion blur, so the mask needs feathering too.
+
+1. `Shift + Ctrl + Left Click` on the spline to add feather points.
+2. Drag the feather points outwards to soften the edge.
+3. To scale the feather of several points at once, select them, press `Alt + S` and move the mouse.
+4. Match the feather to the footage. A sharp, in-focus object needs only a pixel or two. An out-of-focus or fast-moving object needs more.
+5. If you need to start again, use **Mask -> Clear Feather Weight** to reset the feather.
+
+### 14.7 Set the mask layer options
+
+A mask can have several layers, and each layer has its own shape keys.
+
+1. Open the sidebar (`N`) and find the **Mask Layers** panel.
+2. Use **+** to add a layer for each part that moves differently, such as a person's body and each arm.
+3. Set **Invert** if you want the layer to cover everything **except** the shape you drew. You can use this instead of an Invert node in the Compositor ([14.8](#148-use-the-mask-in-the-compositor)).
+4. Set **Blend** to choose how the layer combines with the layers below it. Use **Subtract** to cut a hole out of another layer's shape.
+5. Set **Falloff** to choose the curve used for the feather (for example smooth or linear).
+
+> 💡 **Tip:** A shape key affects every spline in its layer, so shapes on separate layers can be keyed independently.
+
+### 14.8 Use the mask in the Compositor
+
+**Render settings**
+
+1. Go to **Render Properties -> Film** and enable **Transparent**, so the render has an alpha channel and no background is drawn behind your mesh.
+
+**Node setup**
+
+1. Open the **Compositing** workspace and enable **Use Nodes**. If you ran **Setup Tracking Scene** in [Step 7](#step-7-set-up-the-tracking-scene), Blender may already have added some nodes. Check them before adding more.
+2. Add a **Movie Clip** node (**Add -> Input -> Movie Clip**) and select your footage.
+3. Add a **Render Layers** node (**Add -> Input -> Render Layers**).
+4. Add a **Mask** node (**Add -> Input -> Mask**) and select your mask.
+5. Add an **Invert** node (**Add -> Color -> Invert**).
+6. Add an **Alpha Over** node (**Add -> Color -> Alpha Over**).
+7. Connect **Movie Clip -> Image** to the **first Image** input of Alpha Over (the background).
+8. Connect **Render Layers -> Image** to the **second Image** input of Alpha Over (the foreground).
+9. Connect **Mask -> Mask** to **Invert -> Color**, then **Invert -> Color** to **Alpha Over -> Fac**.
+10. Connect **Alpha Over -> Image** to the **Composite** node and a **Viewer** node.
+
+<!-- IMAGE: images/motion_tracking/mask_compositor_nodes.png -->
+
+If you set **Invert** on the mask layer in [14.7](#147-set-the-mask-layer-options), skip the Invert node and connect the Mask node straight to **Fac**.
+
+How it works: Alpha Over places the mesh render over the footage, and its **Fac** input controls how much of the mesh is shown. The inverted mask is black where the real object is, so the mesh disappears there and the footage shows through. Everywhere else it is white, so the mesh shows normally.
+
+**Mask node settings**
+
+1. **Mask:** check that your mask is selected.
+2. **Feather:** keep this enabled so your feather points from [14.6](#146-feather-the-edge) are used.
+3. **Size Source:** leave this on **Scene Size** so the mask matches your render resolution.
+4. **Motion Blur:** enable this for fast-moving objects. Blender blurs the mask using the surrounding frames, which helps it match motion-blurred footage. Raise **Samples** for a smoother result.
+
+> 💡 **Tip:** Connect the Mask node straight to a **Viewer** node while you work. The Viewer updates as you edit the mask in the Movie Clip Editor, so you can see exactly what the mask is cutting out.
+
+### 14.9 Check the mask
+
+1. Scrub frame by frame through every frame where the object overlaps the mesh.
+2. Look for **gaps**, where the mesh shows over the object.
+3. Look for **halos**, where footage shows around the edge of the object.
+4. Check the frames **between** shape keys, not just the keyed frames.
+5. Check the first and last frames of the overlap, where the object enters and leaves.
+6. Play the whole sequence at full speed. Edge problems that are invisible on a still frame often show up as flicker during playback.
+7. Fix any problems by adjusting points or adding shape keys, then check again.
+
+### Masking shortcuts (Mask mode)
+
+| Shortcut | Action |
+|---|---|
+| `Ctrl + Left Click` | Add point (drag to pull out handles) |
+| Double-click / `Alt + C` | Close the shape (Toggle Cyclic) |
+| `Shift + Ctrl + Left Click` | Add feather point |
+| `Alt + S` | Scale feather |
+| `G` / `R` / `S` | Move / rotate / scale selected points |
+| `V` | Set handle type |
+| `Shift + N` | Recalculate handles |
+| `X` | Delete selected points |
+| `Ctrl + P` | Parent selected points to the active track |
+| `Alt + P` | Clear parent |
+| `I` | Insert shape key |
+| `Alt + I` | Clear shape key |
+
+### Common problems
+
+| Problem | Likely cause | Fix |
+|---|---|---|
+| Mask has no effect in the Compositor | Wrong mask selected in the Mask node, or Fac not connected | Check the node's mask selector and connections |
+| Mesh disappears **everywhere except** the object | Mask not inverted | Add an Invert node, or set **Invert** on the mask layer |
+| Mask doesn't move with the parented track | Display not refreshed | Save and reopen the file, then check **Active Point -> Parent** in the sidebar |
+| Mask lags or drifts between keys | Too few shape keys | Add keys halfway between existing ones |
+| Hard, visible edge | No feather | Add feather ([14.6](#146-feather-the-edge)), and enable Motion Blur on the Mask node for moving objects |
+| Camera solve got worse after tracking the object | Moving-object markers included in the solve | Move them to a separate tracking object ([14.2](#142-track-the-foreground-object)) and re-solve |
+
+> 💡 **Tip:** Masks can also help tracking. A mask can hide a moving object inside a marker's pattern area, so Blender only follows the static background. Use this when a good feature has something moving across it.
